@@ -89,3 +89,12 @@ function updateMap(selectedMeasure) {
 d3.select("#riskSelector").on("change", function () {
     updateMap(this.value);
 });
+
+// Navigation toggle
+const navToggle = document.getElementById('navToggle');
+const nav = document.querySelector('aside nav');
+
+navToggle.addEventListener('click', () => {
+  nav.classList.toggle('open');
+});
+

@@ -53,3 +53,11 @@ d3.csv("CSV/Obesity_Data.csv").then(data => {
     .attr("fill", "teal")
     .attr("opacity", 0.7);
 });
+
+// Navigation toggle
+const navToggle = document.getElementById('navToggle');
+const nav = document.querySelector('aside nav');
+
+navToggle.addEventListener('click', () => {
+  nav.classList.toggle('open');
+});
