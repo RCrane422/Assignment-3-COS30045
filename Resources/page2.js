@@ -304,3 +304,11 @@ Promise.all([
 }).catch(error => {
   console.error("Error loading average CSV files:", error);
 });
+
+// Navigation toggle
+const navToggle = document.getElementById('navToggle');
+const nav = document.querySelector('aside nav');
+
+navToggle.addEventListener('click', () => {
+  nav.classList.toggle('open');
+});

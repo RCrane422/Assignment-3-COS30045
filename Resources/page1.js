@@ -6,8 +6,9 @@ const margin = {top: 40, right: 40, bottom: 70, left: 70};
 // === SVG Container Setup ===
 const svg = d3.select("#scatterplot1")
   .append("svg")
-  .attr("width", width)
-  .attr("height", height);
+  .attr("viewBox", `0 0 ${width} ${height}`)
+  .attr("preserveAspectRatio", "xMidYMid meet")
+  .classed("responsive-svg", true);
 
 // === Axis Groups ===
 const xAxisGroup = svg.append("g")
@@ -157,7 +158,7 @@ function updatePlot(selectedYear) {
     .attr("cx", d => xScale(d.alcohol))
     .attr("cy", d => yScale(d.health))
     .attr("r", 6)
-    .attr("fill", "#2a9d8f")
+    .attr("fill", "blue")
     .attr("opacity", 0.8);
 
   circles.enter()
@@ -165,7 +166,7 @@ function updatePlot(selectedYear) {
     .attr("cx", d => xScale(d.alcohol))
     .attr("cy", d => yScale(d.health))
     .attr("r", 0)
-    .attr("fill", "#2a9d8f")
+    .attr("fill", "blue")
     .attr("opacity", 0.8)
     .on("click", (event, d) => {
       tooltip.transition()
@@ -228,4 +229,12 @@ svg.on("click", (event) => {
   if (!event.target.closest("circle")) {
     tooltip.transition().duration(200).style("opacity", 0);
   }
+});
+
+// Navigation toggle
+const navToggle = document.getElementById('navToggle');
+const nav = document.querySelector('aside nav');
+
+navToggle.addEventListener('click', () => {
+  nav.classList.toggle('open');
 });

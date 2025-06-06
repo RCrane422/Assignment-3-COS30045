@@ -167,6 +167,99 @@ aside nav li a:hover:not(.active){
   color: white;
 }
 
+#navToggle {
+  display: none;
+  background-color: #2a9d8f;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 799px) {
+  main {
+    margin-left: 0;
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  #scatterplot1 {
+    max-width: 100%;
+  }
+
+  #scatterplot1 svg {
+    max-height: 400px;
+  }
+
+
+  aside {
+    float: none;
+    width: 100%;
+    background-color: #ddd;
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
+  }
+
+  #navToggle {
+    display: block;
+  }
+
+  aside nav {
+    display: none;
+  }
+
+  aside nav.open {
+    display: block;
+  }
+
+  aside nav ul {
+    padding-left: 0;
+  }
+
+  aside nav li a {
+    padding: 0.8rem 1rem;
+  }
+  main {
+    margin-left: 0;
+    max-width: 100%;
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 800px) {
+  aside {
+    float: left;
+    width: 200px;
+    background-color: rgb(221, 221, 221);
+    padding: 0;
+  }
+
+  #navToggle {
+    display: none !important;
+  }
+
+  aside nav {
+    display: block !important;
+  }
+
+  main {
+    margin-left: 220px;
+    max-width: 1200px;
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #scatterplot1 svg {
+    max-height: 600px;
+  }
+}
+
 main {
   margin-left: 430px;
   padding-top: 1rem;
@@ -200,11 +293,18 @@ main {
 
 .scatterplot{
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
+  height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 0 auto;
+  margin: 2rem auto;
+}
+
+.responsive-svg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
   #controls {
@@ -215,13 +315,15 @@ main {
 
 }
 #scatterplot1{
-  display: flex;
-  text-align: center;
-  margin-top: 0;
+  width: 100%;
+  max-width: 800px;
+  height: auto;
   }
 
   #scatterplot1 svg { 
-    margin: 0;
+    width: 100%;
+    height: auto; 
+    max-height: 600px;
     display: block;
   }
 
