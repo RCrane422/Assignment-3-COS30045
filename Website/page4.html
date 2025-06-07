@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Meta Settings-->
+        <meta charset="UTF-8"/>
+        <meta name="description"     content="Interactive visualisation exploring regional patterns of smoking and vaping prevalence" />
+        <meta name="keywords" content="OECD Health Data, Smoking, Vaping, Regional Risks"/> 
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Regional Health Risk Patterns</title>
+
+        <!-- Style and Script Sheets-->
+        <link rel="stylesheet" type="text/css" href="CSS/style1.css">
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="Resources/page4.js" defer></script>
+
+    </head>
+
+    <body>
+
+        
+        <!-- Header and Title-->
+        <header>
+        <h2>Comparing Alcohol consumption to Perceived Health</h2>
+        <h3>COS30045 Data Visualisation Assignment - Team 2G | May 14, 2025</h3>
+        <p></p>
+    </header>
+
+    <!-- NavBar-->
+    <aside>
+        <button id="navToggle" aria-atomic="Toggle navigation">Menu</button>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home Page</a></li>
+                <li><a href="page1.html">Alcohol Consumption v Health</a></li>
+                <li><a href="page2.html">Effects of Vaping on Smoking</a></li>
+                <li><a href="page3.html">Effects of Alcohol on Obesity</a></li>
+                <li><a class="active" href="page4.html">Regional Health Risk</a></li>
+                <li><a href="page5.html">Does Gender Effect Health?</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <h3>Comparing regional data of Smoking and Vaping Prevalance by the 2019 Records</h3>
+
+        <!-- Chart Selecter and Chart div-->
+
+        <label for="riskSelector">Choose a health risk:</label>
+            <select id="riskSelector">
+                <option value="SP_DS">Daily Smokers</option>
+                <option value="SP_RVPU">Vaping Product Users</option>
+            </select>
+
+
+    <div id="map"></div>
+
+</main>
+   
+
+    <!-- Footer -->
+    <footer>
+        <p>Created by Riley Crane and John Hewitt - Team 2G | May 23, 2025</p>
+        <p><a href="index.html" class="back-button">Home Page</a></p>
+    </footer>
+
+</body>
+</html>

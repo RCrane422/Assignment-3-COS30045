@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--  Meta Info  -->
+  <meta charset="UTF-8" />
+  <meta name="description" content="Interactive visualisation exploring relationships between alcohol consumption and health status" />
+  <meta name="keywords" content="OECD Health Data, Alcohol Consumption, Perceived Health" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alcohol vs Perceived Health</title>
+
+  <!--  Styles & Scripts  -->
+  <link rel="stylesheet" href="CSS/style1.css" />
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="Resources/page1.js" defer></script>
+</head>
+
+<body>
+  <!--  Header  -->
+  <header>
+    <h2>Comparing Alcohol Consumption to Perceived Health</h2>
+    <h3>COS30045 Data Visualisation Assignment - Team 2G | May 27, 2025</h3>
+  </header>
+
+  <!--  Navigation  -->
+    <aside>
+        <button id="navToggle" aria-atomic="Toggle navigation">Menu</button>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home Page</a></li>
+                <li><a class="active" href="page1.html">Alcohol Consumption v Health</a></li>
+                <li><a href="page2.html">Effects of Vaping on Smoking</a></li>
+                <li><a href="page3.html">Effects of Alcohol on Obesity</a></li>
+                <li><a href="page4.html">Regional Health Risk</a></li>
+                <li><a href="page5.html">Does Gender Effect Health?</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+  <!--  Main Content  -->
+  <main>
+
+    <h3>Compare the use of Alcohol to the Perceived Health of People against the Use of Alcohol</h3>
+
+
+    <!-- Year Filter -->
+    <section class="scatterplot">
+      <div id="controls">
+        <label for="year-select">Select year:</label>
+
+      </div>
+          <h3>Alcohol Consumption - Good Health </h3>
+
+      <!-- Scatterplot 1: Alcohol vs Good Health -->
+      <div id="scatterplot1"></div>
+      <div id="tooltip" class="tooltip" style="opacity: 0;"></div>
+    </section>
+
+      <h3>Alcohol Consumption - Bad Health </h3>
+
+    <section class="scatterplot">
+      <div id="scatterplot2"></div>
+      <div id="tooltip2" class="tooltip" style="opacity: 0;"></div>
+    </section>
+  </main>
+
+  <!--  Footer  -->
+  <footer>
+    <p>Created by Riley Crane and John Hewitt - Team 2G | May 23, 2025</p>
+    <p><a href="index.html" class="back-button">Back to Home</a></p>
+  </footer>
+</body>
+</html>
