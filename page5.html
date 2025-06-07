@@ -3,15 +3,15 @@
     <head>
         <!-- Meta Settings-->
         <meta charset="UTF-8"/>
-        <meta name="description"     content="Interactive visualisation exploring regional patterns of smoking and vaping prevalence" />
-        <meta name="keywords" content="OECD Health Data, Smoking, Vaping, Regional Risks"/> 
+        <meta name="description" content="Interactive visualisation exploring gender differences in perceived health"/>
+        <meta name="keywords" content="OECD Health Data, Gender, Life Expectancy, Perceived Health"/> 
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Regional Health Risk Patterns</title>
+        <title>Gender and Health Outcomes</title>
 
         <!-- Style and Script Sheets-->
         <link rel="stylesheet" type="text/css" href="CSS/style1.css">
         <script src="https://d3js.org/d3.v7.min.js"></script>
-        <script src="Resources/page4.js" defer></script>
+        <script src="Resources/page5.js" defer></script>
 
     </head>
 
@@ -25,7 +25,7 @@
         <p></p>
     </header>
 
-    <!-- NavBar-->
+    <!-- Nav Bar -->
     <aside>
         <button id="navToggle" aria-atomic="Toggle navigation">Menu</button>
         <nav>
@@ -34,28 +34,23 @@
                 <li><a href="page1.html">Alcohol Consumption v Health</a></li>
                 <li><a href="page2.html">Effects of Vaping on Smoking</a></li>
                 <li><a href="page3.html">Effects of Alcohol on Obesity</a></li>
-                <li><a class="active" href="page4.html">Regional Health Risk</a></li>
-                <li><a href="page5.html">Does Gender Effect Health?</a></li>
+                <li><a href="page4.html">Regional Health Risk</a></li>
+                <li><a class="active" href="page5.html">Does Gender Effect Health?</a></li>
             </ul>
         </nav>
     </aside>
 
     <!-- Main Content -->
     <main>
-        <h3>Comparing regional data of Smoking and Vaping Prevalance by the 2019 Records</h3>
+    <h3>How does gender effect life expectancy and also perceived health</h3>
 
-        <!-- Chart Selecter and Chart div-->
+        <div id="controls">
+        <label for="year-select">Select year:</label>
+        <select id="yearSelector" name="year-select"></select>
+        </div>
+        <div id="map"></div>
 
-        <label for="riskSelector">Choose a health risk:</label>
-            <select id="riskSelector">
-                <option value="SP_DS">Daily Smokers</option>
-                <option value="SP_RVPU">Vaping Product Users</option>
-            </select>
-
-
-    <div id="map"></div>
-
-</main>
+        </main>
    
 
     <!-- Footer -->

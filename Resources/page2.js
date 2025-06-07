@@ -1,132 +1,147 @@
-// === Shared Setup ===
+// Shared config for margins and plot size
 const margin = { top: 40, right: 40, bottom: 70, left: 70 };
-const width = 800 - margin.left - margin.right;
-const heightMain = 450 - margin.top - margin.bottom;
-const heightAvg = 450 - margin.top - margin.bottom;
+const width  = 800 - margin.left - margin.right;
+const height = 450 - margin.top  - margin.bottom;
 
-// === Main Line Chart SVG Container ===
-const svg = d3.select("#linechart")
-  .append("svg")
-  .attr("width", width + margin.left + margin.right)
-  .attr("height", heightMain + margin.top + margin.bottom)
-  .append("g")
-  .attr("transform", `translate(${margin.left},${margin.top})`);
+// Helper to create an SVG inside a container
+function setupSvg(selector) {
+  return d3.select(selector)
+    .append("svg")
+      .attr("width",  width + margin.left + margin.right)
+      .attr("height", height + margin.top  + margin.bottom)
+      .classed("responsive-svg", true)
+    .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+}
 
-// === Load & Process Country-Level Data ===
+const svgMain = setupSvg("#linechart");
+const svgAvg  = setupSvg("#averagechart");
+
+// Add axes and labels to an SVG
+function setupAxes(svg, yLabel) {
+  svg.append("g")
+      .attr("class", "x-axis")
+      .attr("transform", `translate(0,${height})`);
+
+  svg.append("g")
+      .attr("class", "y-axis");
+
+  svg.append("text")
+      .attr("class", "axis-label")
+      .attr("x", width / 2)
+      .attr("y", height + 50)
+      .attr("text-anchor", "middle")
+      .text("Year");
+
+  svg.append("text")
+      .attr("class", "axis-label")
+      .attr("x", -height / 2)
+      .attr("y", -50)
+      .attr("transform", "rotate(-90)")
+      .attr("text-anchor", "middle")
+      .text(yLabel);
+}
+
+setupAxes(svgMain, "Population (%)");
+setupAxes(svgAvg,  "Average Population (%)");
+
+// Load all four CSVs in parallel
 Promise.all([
   d3.csv("CSV/Tobacco_Consumption2.csv"),
-  d3.csv("CSV/Vaping_Consumption2.csv")
-]).then(([tobaccoDataRaw, vapingDataRaw]) => {
-
-  const parse = data =>
-    data.filter(d => d["OBS_VALUE"] && !isNaN(d["OBS_VALUE"]))
+  d3.csv("CSV/Vaping_Consumption2.csv"),
+  d3.csv("CSV/Tobacco_Average.csv"),
+  d3.csv("CSV/Vaping_Average.csv")
+]).then(([tobaccoRaw, vapingRaw, tobaccoAvgRaw, vapingAvgRaw]) => {
+  // Parse country/year/value triples
+  function parseData(data) {
+    return data
+      .filter(d => d.OBS_VALUE && !isNaN(d.OBS_VALUE))
       .map(d => ({
         country: d["Reference area"],
-        year: +d["TIME_PERIOD"],
-        value: +d["OBS_VALUE"]
+        year:    +d.TIME_PERIOD,
+        value:   +d.OBS_VALUE
       }));
+  }
 
-  const tobaccoData = parse(tobaccoDataRaw);
-  const vapingData = parse(vapingDataRaw);
+  // Parse average tables (skip Grand Total)
+  function parseAvg(data) {
+    return data
+      .filter(d => d["Row Labels"] !== "Grand Total" && !isNaN(d["Average of OBS_VALUE"]))
+      .map(d => ({
+        year:  +d["Row Labels"],
+        value: +d["Average of OBS_VALUE"]
+      }));
+  }
 
-  const commonCountries = [...new Set(tobaccoData.map(d => d.country))]
+  const tobaccoData = parseData(tobaccoRaw);
+  const vapingData  = parseData(vapingRaw);
+  const tobaccoAvg  = parseAvg(tobaccoAvgRaw);
+  const vapingAvg   = parseAvg(vapingAvgRaw);
+
+  // Build country dropdown
+  const countries = Array.from(new Set(tobaccoData.map(d => d.country)))
     .filter(c => vapingData.some(v => v.country === c))
     .sort();
 
-  // Populate Dropdown
-  const countrySelect = d3.select("#country-select");
-  countrySelect.selectAll("option")
-    .data(commonCountries)
-    .enter()
-    .append("option")
-    .text(d => d)
-    .attr("value", d => d);
+  d3.select("#country-select")
+    .selectAll("option")
+    .data(countries)
+    .join("option")
+      .attr("value", d => d)
+      .text(d => d);
 
-  // Scales & Axes
+  // Scales and line generator (reused)
   const xScale = d3.scaleLinear().range([0, width]);
-  const yScale = d3.scaleLinear().range([heightMain, 0]);
-  const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
-  const yAxis = d3.axisLeft(yScale);
-
-  svg.append("g").attr("class", "x-axis").attr("transform", `translate(0,${heightMain})`);
-  svg.append("g").attr("class", "y-axis");
-
-  // Axis Labels
-  svg.append("text")
-    .attr("x", width / 2)
-    .attr("y", heightMain + 50)
-    .attr("text-anchor", "middle")
-    .text("Year");
-
-  svg.append("text")
-    .attr("x", -heightMain / 2)
-    .attr("y", -50)
-    .attr("text-anchor", "middle")
-    .attr("transform", "rotate(-90)")
-    .text("Percentage of Population (%)");
-
-  // Line Generators
-  const line = d3.line()
+  const yScale = d3.scaleLinear().range([height, 0]);
+  const lineGen = d3.line()
     .x(d => xScale(d.year))
     .y(d => yScale(d.value));
 
-  // Chart Update Function
-  function updateChart(country) {
-    const tobacco = tobaccoData.filter(d => d.country === country).sort((a, b) => a.year - b.year);
-    const vaping = vapingData.filter(d => d.country === country).sort((a, b) => a.year - b.year);
-
-    const years = [...new Set([...tobacco.map(d => d.year), ...vaping.map(d => d.year)])];
-    const values = [...tobacco.map(d => d.value), ...vaping.map(d => d.value)];
-
-    xScale.domain(d3.extent(years)).nice();
-    yScale.domain([0, d3.max(values) * 1.1]).nice();
-
-    svg.select(".x-axis").call(xAxis);
-    svg.select(".y-axis").call(yAxis);
-
-    // Remove old elements
-    svg.selectAll(".tobacco-line, .vaping-line, .tobacco-marker, .vaping-marker, .legend").remove();
-
-    // Draw lines
+  // Draw line plus markers
+  function drawLine(svg, data, color, cls) {
     svg.append("path")
-      .datum(tobacco)
-      .attr("class", "tobacco-line")
+      .datum(data)
+      .attr("class", `${cls}-line`)
       .attr("fill", "none")
-      .attr("stroke", "blue")
+      .attr("stroke", color)
       .attr("stroke-width", 2)
-      .attr("d", line);
+      .attr("d", lineGen);
 
-    svg.append("path")
-      .datum(vaping)
-      .attr("class", "vaping-line")
-      .attr("fill", "none")
-      .attr("stroke", "green")
-      .attr("stroke-width", 2)
-      .attr("d", line);
-
-    // Draw markers
-    svg.selectAll(".tobacco-marker")
-      .data(tobacco)
+    svg.selectAll(`.${cls}-marker`)
+      .data(data)
       .enter()
       .append("circle")
-      .attr("class", "tobacco-marker")
-      .attr("cx", d => xScale(d.year))
-      .attr("cy", d => yScale(d.value))
-      .attr("r", 4)
-      .attr("fill", "blue");
+        .attr("class", `${cls}-marker`)
+        .attr("r", 4)
+        .attr("cx", d => xScale(d.year))
+        .attr("cy", d => yScale(d.value))
+        .attr("fill", color);
+  }
 
-    svg.selectAll(".vaping-marker")
-      .data(vaping)
-      .enter()
-      .append("circle")
-      .attr("class", "vaping-marker")
-      .attr("cx", d => xScale(d.year))
-      .attr("cy", d => yScale(d.value))
-      .attr("r", 4)
-      .attr("fill", "green");
+  // Update main chart by country
+  function updateMainChart(country) {
+    // Filter and sort
+    const tob = tobaccoData.filter(d => d.country === country).sort((a,b) => a.year - b.year);
+    const vap = vapingData.filter(d => d.country === country).sort((a,b) => a.year - b.year);
 
-    // Add legend
-    const legend = svg.append("g")
+    const allYears  = [...new Set([...tob, ...vap].map(d => d.year))];
+    const allValues = [...tob, ...vap].map(d => d.value);
+
+    // Update scales
+    xScale.domain(d3.extent(allYears)).nice();
+    yScale.domain([0, d3.max(allValues) * 1.1]);
+
+    // Redraw axes
+    svgMain.select(".x-axis").call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+    svgMain.select(".y-axis").call(d3.axisLeft(yScale));
+
+    svgMain.selectAll(".tobacco-line, .vaping-line, .tobacco-marker, .vaping-marker, .legend").remove();
+
+    drawLine(svgMain, tob, "steelblue",  "tobacco");
+    drawLine(svgMain, vap, "darkgreen",  "vaping");
+
+    // Legend box
+    const legend = svgMain.append("g")
       .attr("class", "legend")
       .attr("transform", `translate(${width - 120}, 20)`);
 
@@ -134,173 +149,93 @@ Promise.all([
       .attr("width", 100)
       .attr("height", 50)
       .attr("fill", "white")
-      .attr("stroke", "black");
+      .attr("stroke", "#444");
 
-    legend.append("line")
-      .attr("x1", 10).attr("y1", 15)
-      .attr("x2", 30).attr("y2", 15)
-      .attr("stroke", "blue")
-      .attr("stroke-width", 2);
-    legend.append("text").attr("x", 35).attr("y", 20).text("Tobacco");
-
-    legend.append("line")
-      .attr("x1", 10).attr("y1", 35)
-      .attr("x2", 30).attr("y2", 35)
-      .attr("stroke", "green")
-      .attr("stroke-width", 2);
-    legend.append("text").attr("x", 35).attr("y", 40).text("Vaping");
+    [["Tobacco","steelblue",15], ["Vaping","darkgreen",35]].forEach(([label, color, y]) => {
+      legend.append("line")
+        .attr("x1", 10).attr("y1", y)
+        .attr("x2", 30).attr("y2", y)
+        .attr("stroke", color).attr("stroke-width", 2);
+      legend.append("text")
+        .attr("x", 35).attr("y", y + 5)
+        .style("font-size", "12px")
+        .text(label);
+    });
   }
 
-  updateChart(commonCountries[0]);
-  countrySelect.on("change", function () {
-    updateChart(this.value);
+  // Draw average chart
+  (() => {
+    const xAvg = d3.scaleLinear()
+      .domain(d3.extent([...tobaccoAvg, ...vapingAvg], d => d.year)).nice()
+      .range([0, width]);
+
+    const yAvg = d3.scaleLinear()
+      .domain([0, d3.max([...tobaccoAvg, ...vapingAvg], d => d.value) * 1.1]).nice()
+      .range([height, 0]);
+
+    svgAvg.select(".x-axis").call(d3.axisBottom(xAvg).tickFormat(d3.format("d")));
+    svgAvg.select(".y-axis").call(d3.axisLeft(yAvg));
+
+    const avgLine = d3.line()
+      .defined(d => !isNaN(d.value))
+      .x(d => xAvg(d.year))
+      .y(d => yAvg(d.value));
+
+    [["tobacco","steelblue",tobaccoAvg], ["vaping","darkgreen",vapingAvg]]
+      .forEach(([cls, color, data]) => {
+        svgAvg.append("path")
+          .datum(data)
+          .attr("class", `${cls}-line`)
+          .attr("fill", "none")
+          .attr("stroke", color)
+          .attr("stroke-width", 2)
+          .attr("d", avgLine);
+
+        svgAvg.selectAll(`.${cls}-marker`)
+          .data(data)
+          .enter()
+          .append("circle")
+            .attr("class", `${cls}-marker`)
+            .attr("r", 4)
+            .attr("cx", d => xAvg(d.year))
+            .attr("cy", d => yAvg(d.value))
+            .attr("fill", color);
+      });
+
+    // Average legend
+    const legendAvg = svgAvg.append("g")
+      .attr("class", "legend")
+      .attr("transform", `translate(${width - 120}, 20)`);
+
+    legendAvg.append("rect")
+      .attr("width", 100)
+      .attr("height", 50)
+      .attr("fill", "white")
+      .attr("stroke", "#444");
+
+    [["Tobacco","steelblue",15], ["Vaping","darkgreen",35]].forEach(([label, color, y]) => {
+      legendAvg.append("line")
+        .attr("x1", 10).attr("y1", y)
+        .attr("x2", 30).attr("y2", y)
+        .attr("stroke", color).attr("stroke-width", 2);
+      legendAvg.append("text")
+        .attr("x", 35).attr("y", y + 5)
+        .style("font-size", "12px")
+        .text(label);
+    });
+  })();
+
+  updateMainChart(countries[0]);
+  d3.select("#country-select").on("change", function() {
+    updateMainChart(this.value);
   });
 
-}).catch(error => {
-  console.error("Error loading country-level CSVs:", error);
-});
+}).catch(err => console.error("CSV loading error:", err));
 
-// === Average Chart Setup ===
-const svgAvg = d3.select("#averagechart")
-  .append("svg")
-  .attr("width", width + margin.left + margin.right)
-  .attr("height", heightAvg + margin.top + margin.bottom)
-  .append("g")
-  .attr("transform", `translate(${margin.left},${margin.top})`);
+//  Navigation Toggle 
+const navToggle = document.getElementById('navToggle');
+const nav = document.querySelector('aside nav');
 
-Promise.all([
-  d3.csv("CSV/Tobacco_Average.csv"),
-  d3.csv("CSV/Vaping_Average.csv")
-]).then(([tobaccoAvgRaw, vapingAvgRaw]) => {
-
-  // Parse average data, using correct column name
-  const parseAvg = data => data
-    .filter(d => d["Row Labels"] !== "Grand Total" && !isNaN(d["Average of OBS_VALUE"]))
-    .map(d => ({
-      year: +d["Row Labels"],
-      value: +d["Average of OBS_VALUE"]
-    }));
-
-  const tobaccoAvg = parseAvg(tobaccoAvgRaw);
-  const vapingAvg = parseAvg(vapingAvgRaw);
-
-  // Combine years and values for scaling
-  const years = [...new Set([...tobaccoAvg.map(d => d.year), ...vapingAvg.map(d => d.year)])];
-  const values = [...tobaccoAvg.map(d => d.value), ...vapingAvg.map(d => d.value)];
-
-  // Scales
-  const xScaleAvg = d3.scaleLinear()
-    .range([0, width])
-    .domain(d3.extent(years))
-    .nice();
-
-  const yScaleAvg = d3.scaleLinear()
-    .range([heightAvg, 0])
-    .domain([0, d3.max(values) * 1.1])
-    .nice();
-
-  // Axes
-  const xAxisAvg = d3.axisBottom(xScaleAvg).tickFormat(d3.format("d"));
-  const yAxisAvg = d3.axisLeft(yScaleAvg);
-
-  svgAvg.append("g")
-    .attr("class", "x-axis")
-    .attr("transform", `translate(0,${heightAvg})`)
-    .call(xAxisAvg);
-
-  svgAvg.append("g")
-    .attr("class", "y-axis")
-    .call(yAxisAvg);
-
-  // Axis Labels
-  svgAvg.append("text")
-    .attr("x", width / 2)
-    .attr("y", heightAvg + 50)
-    .attr("text-anchor", "middle")
-    .text("Year");
-
-  svgAvg.append("text")
-    .attr("x", -heightAvg / 2)
-    .attr("y", -50)
-    .attr("text-anchor", "middle")
-    .attr("transform", "rotate(-90)")
-    .text("Average % of Population");
-
-  // Line Generator
-  const lineAvg = d3.line()
-    .x(d => xScaleAvg(d.year))
-    .y(d => yScaleAvg(d.value))
-    .defined(d => !isNaN(d.value)); // Skip invalid values
-
-  // Draw Lines
-  svgAvg.append("path")
-    .datum(tobaccoAvg)
-    .attr("class", "tobacco-line")
-    .attr("fill", "none")
-    .attr("stroke", "blue")
-    .attr("stroke-width", 2)
-    .attr("d", lineAvg);
-
-  svgAvg.append("path")
-    .datum(vapingAvg)
-    .attr("class", "vaping-line")
-    .attr("fill", "none")
-    .attr("stroke", "green")
-    .attr("stroke-width", 2)
-    .attr("d", lineAvg);
-
-  // Draw Markers
-  svgAvg.selectAll(".tobacco-marker")
-    .data(tobaccoAvg)
-    .enter()
-    .append("circle")
-    .attr("class", "tobacco-marker")
-    .attr("cx", d => xScaleAvg(d.year))
-    .attr("cy", d => yScaleAvg(d.value))
-    .attr("r", 4)
-    .attr("fill", "blue");
-
-  svgAvg.selectAll(".vaping-marker")
-    .data(vapingAvg)
-    .enter()
-    .append("circle")
-    .attr("class", "vaping-marker")
-    .attr("cx", d => xScaleAvg(d.year))
-    .attr("cy", d => yScaleAvg(d.value))
-    .attr("r", 4)
-    .attr("fill", "green");
-
-  // Add Legend
-  const legend = svgAvg.append("g")
-    .attr("class", "legend")
-    .attr("transform", `translate(${width - 120}, 20)`);
-
-  legend.append("rect")
-    .attr("width", 100)
-    .attr("height", 50)
-    .attr("fill", "white")
-    .attr("stroke", "black");
-
-  legend.append("line")
-    .attr("x1", 10).attr("y1", 15)
-    .attr("x2", 30).attr("y2", 15)
-    .attr("stroke", "blue")
-    .attr("stroke-width", 2);
-  legend.append("text")
-    .attr("x", 35)
-    .attr("y", 20)
-    .text("Tobacco");
-
-  legend.append("line")
-    .attr("x1", 10).attr("y1", 35)
-    .attr("x2", 30).attr("y2", 35)
-    .attr("stroke", "green")
-    .attr("stroke-width", 2);
-  legend.append("text")
-    .attr("x", 35)
-    .attr("y", 40)
-    .text("Vaping");
-
-}).catch(error => {
-  console.error("Error loading average CSV files:", error);
+navToggle.addEventListener('click', () => {
+  nav.classList.toggle('open');
 });
