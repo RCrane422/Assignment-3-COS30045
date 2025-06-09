@@ -3,11 +3,17 @@ const width  = 850;
 const height = 500;
 const margin = { top: 40, right: 100, bottom: 70, left: 70 };
 
+const totalWidth  = width + margin.left + margin.right;
+const totalHeight = height + margin.top + margin.bottom;
+
+
 // Create SVG and main chart group
 const svg = d3.select("#chart4")
   .append("svg")
-    .attr("width",  width + margin.left + margin.right)
-    .attr("height", height)
+    .attr("viewBox", `0 0 ${totalWidth} ${totalHeight}`)
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .style("width", "100%")
+    .style("height", "auto")
   .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -32,6 +38,7 @@ Promise.all([
   // Build country dropdown
   const countries = Array.from(new Set(obesity.map(d => d.country))).sort();
   const dropdown  = d3.select("#country-select")
+  dropdown
     .selectAll("option")
     .data(countries)
     .join("option")
@@ -58,10 +65,19 @@ Promise.all([
     const yLeft   = d3.scaleLinear().domain([0, d3.max(obs, d => d.value)*1.1]).range([innerHeight, 0]);
     const yRight  = d3.scaleLinear().domain([0, d3.max(alc, d => d.value)*1.1]).range([innerHeight, 0]);
 
-    // X axis
+    // X axis (years)
     svg.append("g")
       .attr("transform", `translate(0,${innerHeight})`)
-      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")))
+  ;
+
+    svg.append("text")
+    .attr("x", innerWidth / 2)
+    .attr("y", innerHeight + 50)
+
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .text("Years")
 
     // Left Y axis (obesity)
     svg.append("g").call(d3.axisLeft(yLeft));

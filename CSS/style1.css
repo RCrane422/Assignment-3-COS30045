@@ -167,11 +167,22 @@ main {
   align-items: center;
 }
 
+#linechart svg,
+#averagechart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 700px;
+}
+
+
 
 
 #scatterplot1,
 #scatterplot2,
-#map {
+#map, 
+#chart4
+ {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
@@ -319,6 +330,7 @@ footer {
   #averagechart svg {
     max-height: 500px;
   }
+
 }
 
 @media (min-width: 800px) {

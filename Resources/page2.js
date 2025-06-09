@@ -1,9 +1,9 @@
-// Shared config for margins and plot size
+// Shared config for SVG 
 const margin = { top: 40, right: 40, bottom: 70, left: 70 };
 const width  = 800 - margin.left - margin.right;
 const height = 450 - margin.top  - margin.bottom;
 
-// Helper to create an SVG inside a container
+// SVG Creation inside a container
 function setupSvg(selector) {
   return d3.select(selector)
     .append("svg")
@@ -52,7 +52,7 @@ Promise.all([
   d3.csv("CSV/Tobacco_Average.csv"),
   d3.csv("CSV/Vaping_Average.csv")
 ]).then(([tobaccoRaw, vapingRaw, tobaccoAvgRaw, vapingAvgRaw]) => {
-  // Parse country/year/value triples
+
   function parseData(data) {
     return data
       .filter(d => d.OBS_VALUE && !isNaN(d.OBS_VALUE))
@@ -63,7 +63,7 @@ Promise.all([
       }));
   }
 
-  // Parse average tables (skip Grand Total)
+
   function parseAvg(data) {
     return data
       .filter(d => d["Row Labels"] !== "Grand Total" && !isNaN(d["Average of OBS_VALUE"]))
@@ -90,7 +90,7 @@ Promise.all([
       .attr("value", d => d)
       .text(d => d);
 
-  // Scales and line generator (reused)
+  // Scales and line generator 
   const xScale = d3.scaleLinear().range([0, width]);
   const yScale = d3.scaleLinear().range([height, 0]);
   const lineGen = d3.line()
